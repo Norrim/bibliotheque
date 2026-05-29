@@ -11,6 +11,11 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 	# Or about an error in project initialization
 	php bin/console -V
 
+	# Génère les clés JWT si elles sont absentes (premier démarrage).
+	if [ ! -f config/jwt/private.pem ]; then
+		php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
+	fi
+
 	if grep -q ^DATABASE_URL= .env; then
 		echo 'Waiting for database to be ready...'
 		ATTEMPTS_LEFT_TO_REACH_DATABASE=60
@@ -35,6 +40,11 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 
 		if [ "$(find ./migrations -iname '*.php' -print -quit)" ]; then
 			php bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
+		fi
+
+		# Initialise les données de démonstration (idempotent), hors production.
+		if [ "$APP_ENV" != 'prod' ]; then
+			php bin/console app:demo:init || true
 		fi
 	fi
 
