@@ -29,7 +29,8 @@ final class ReturnLoanProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): LoanOutput
     {
-        $loan = $this->loans->find((int) ($uriVariables['id'] ?? 0));
+        $id = $uriVariables['id'] ?? null;
+        $loan = is_numeric($id) ? $this->loans->find((int) $id) : null;
         if (null === $loan) {
             throw new NotFoundHttpException('Emprunt introuvable.');
         }

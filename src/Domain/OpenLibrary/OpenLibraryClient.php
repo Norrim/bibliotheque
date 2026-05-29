@@ -68,8 +68,10 @@ final class OpenLibraryClient
         }
 
         $author = null;
-        if (isset($work['authors'][0]['name']) && \is_string($work['authors'][0]['name'])) {
-            $author = $work['authors'][0]['name'];
+        $authors = $work['authors'] ?? null;
+        if (\is_array($authors) && isset($authors[0]) && \is_array($authors[0])
+            && isset($authors[0]['name']) && \is_string($authors[0]['name'])) {
+            $author = $authors[0]['name'];
         }
 
         $coverUrl = null;

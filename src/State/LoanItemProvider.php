@@ -24,7 +24,8 @@ final class LoanItemProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?LoanOutput
     {
-        $loan = $this->loans->find((int) ($uriVariables['id'] ?? 0));
+        $id = $uriVariables['id'] ?? null;
+        $loan = is_numeric($id) ? $this->loans->find((int) $id) : null;
 
         return null !== $loan ? $this->mapper->map($loan) : null;
     }

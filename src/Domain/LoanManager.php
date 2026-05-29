@@ -41,7 +41,7 @@ final class LoanManager
     /**
      * Enregistre l'emprunt d'un livre par un adhérent après contrôle des règles.
      *
-     * @throws MemberHasOverdueLoanException si l'adhérent a un emprunt en retard
+     * @throws MemberHasOverdueLoanException  si l'adhérent a un emprunt en retard
      * @throws MaxActiveLoansReachedException si la limite d'emprunts est atteinte
      * @throws BookNotAvailableException      si le livre est déjà emprunté
      */

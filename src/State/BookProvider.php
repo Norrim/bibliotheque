@@ -24,6 +24,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 final class BookProvider implements ProviderInterface
 {
+    /**
+     * @param ProviderInterface<Book> $collectionProvider
+     * @param ProviderInterface<Book> $itemProvider
+     */
     public function __construct(
         #[Autowire(service: CollectionProvider::class)]
         private readonly ProviderInterface $collectionProvider,
@@ -38,8 +42,10 @@ final class BookProvider implements ProviderInterface
             $books = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
             $items = [];
-            foreach ($books as $book) {
-                $items[] = self::toOutput($book);
+            if (is_iterable($books)) {
+                foreach ($books as $book) {
+                    $items[] = self::toOutput($book);
+                }
             }
 
             if ($books instanceof PaginatorInterface) {

@@ -46,8 +46,12 @@ final class SyncBooksCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $subject = (string) $input->getOption('subject');
-        $limit = max(1, (int) $input->getOption('limit'));
+
+        $subjectOption = $input->getOption('subject');
+        $subject = \is_string($subjectOption) ? $subjectOption : 'fiction';
+
+        $limitOption = $input->getOption('limit');
+        $limit = max(1, is_numeric($limitOption) ? (int) $limitOption : 100);
 
         $io->title(\sprintf('Synchronisation OpenLibrary (sujet « %s », limite %d)', $subject, $limit));
 

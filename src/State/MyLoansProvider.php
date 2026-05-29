@@ -37,6 +37,6 @@ final class MyLoansProvider implements ProviderInterface
 
         $loans = $this->loans->findBy(['borrower' => $user], ['borrowedAt' => 'DESC']);
 
-        return array_map($this->mapper->map(...), $loans);
+        return array_values(array_map($this->mapper->map(...), $loans));
     }
 }
