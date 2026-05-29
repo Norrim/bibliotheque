@@ -5,27 +5,52 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    # Hiérarchie des rôles : un admin hérite des droits du bibliothécaire.
+    # ROLE_MEMBER (emprunt) reste distinct et n'est pas hérité par les staffs.
+    role_hierarchy:
+        ROLE_MEMBER: [ROLE_USER]
+        ROLE_LIBRARIAN: [ROLE_USER]
+        ROLE_ADMIN: [ROLE_LIBRARIAN]
 
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+
+        # Authentification : récupération du JWT par identifiants email/mot de passe.
+        login:
+            pattern: ^/api/login_check$
+            stateless: true
+            provider: app_user_provider
+            json_login:
+                check_path: /api/login_check
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # API : stateless, authentifiée par le JWT porté dans l'en-tête Authorization.
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
+    # Note: Only the *first* matching rule is applied.
+    # L'autorisation fine est portée par les attributs security des ressources API Platform.
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

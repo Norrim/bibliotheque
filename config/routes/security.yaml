@@ -1,3 +1,9 @@
 _security_logout:
     resource: security.route_loader.logout
     type: service
+
+# Point d'entrée d'authentification : intercepté par le firewall json_login,
+# renvoie le JWT. La route existe pour être documentée dans l'OpenAPI.
+api_login_check:
+    path: /api/login_check
+    methods: [POST]
