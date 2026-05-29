@@ -86,8 +86,13 @@ curl -k -X POST https://localhost/api/login_check \
 | `POST` | `/api/loans` | `ROLE_MEMBER` | Emprunter un livre (`{ "bookId": 1 }`) |
 | `GET` | `/api/loans/me` | `ROLE_MEMBER` | Mes emprunts |
 | `GET` | `/api/loans/{id}` | propriétaire ou staff | Détail d'un emprunt |
-| `POST` | `/api/loans/{id}/return` | `ROLE_LIBRARIAN` | Valider un retour |
+| `POST` | `/api/loans/{id}/return` | propriétaire (adhérent) | **Rendre** un livre (étape 1) |
+| `POST` | `/api/loans/{id}/validate-return` | `ROLE_LIBRARIAN` | **Valider** le retour (étape 2) |
 | `GET` | `/api/loans/borrowed-count` | `ROLE_LIBRARIAN` | Nombre de livres actuellement empruntés |
+
+Le retour se fait en **deux temps** : l'adhérent *rend* son livre (statut
+`return_requested`), puis le bibliothécaire *valide* le retour (statut `returned`),
+ce qui remet le livre à disposition.
 
 Documentation interactive (Swagger UI) : **https://localhost/api**
 
@@ -97,10 +102,16 @@ Codes de réponse notables : `201` (emprunt créé), `200` (retour validé),
 
 ## Collection Postman
 
-`postman/Bibliotheque.postman_collection.json` — couvre tous les endpoints.
-La requête « Auth > Login » enregistre automatiquement le JWT dans la variable de
-collection `jwt`, réutilisée par les autres requêtes. Variable `baseUrl` =
-`https://localhost`.
+Le dossier `postman/` contient :
+- `Bibliotheque.postman_collection.json` — tous les endpoints, regroupés par
+  domaine. Le dossier **Auth** propose trois connexions (**admin**, **adhérent**,
+  **bibliothécaire**) ; chacune enregistre automatiquement le JWT dans la variable
+  `jwt`, réutilisée par les autres requêtes.
+- `Bibliotheque.postman_environment.json` — environnement « Bibliothèque (local) »
+  définissant `baseUrl` (`https://localhost`).
+
+Importer les deux fichiers, sélectionner l'environnement, puis lancer un *Login*.
+(Pensez à désactiver la vérification SSL dans Postman pour le certificat auto-signé.)
 
 ## Tests et qualité
 

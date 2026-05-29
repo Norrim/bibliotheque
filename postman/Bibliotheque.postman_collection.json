@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bibliothèque API",
-    "description": "API REST d'emprunt de livres (test technique Symfony 8 / API Platform).\n\nUtilisation :\n1. Lancer l'API : `docker compose up -d --wait` (base initialisée automatiquement).\n2. Exécuter « Auth > Login » : le JWT est stocké dans la variable de collection `jwt` et réutilisé par toutes les autres requêtes.\n\nComptes de démonstration (mot de passe : `password`) :\n- admin@biblio.test (administrateur)\n- librarian@biblio.test (bibliothécaire)\n- member1@biblio.test … member100@biblio.test (adhérents)",
+    "description": "API REST d'emprunt de livres (test technique Symfony 8 / API Platform).\n\nUtilisation :\n1. Lancer l'API : `docker compose up -d --wait` (base initialisée automatiquement).\n2. Sélectionner l'environnement « Bibliothèque (local) » (variable `baseUrl`).\n3. Exécuter un des « Auth > Login » : le JWT est stocké dans la variable `jwt` et réutilisé par toutes les autres requêtes.\n\nComptes de démonstration (mot de passe : `password`) :\n- admin@biblio.test (administrateur)\n- librarian@biblio.test (bibliothécaire)\n- member1@biblio.test … member100@biblio.test (adhérents)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -17,7 +17,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Login (récupère le JWT)",
+          "name": "Login admin",
           "event": [
             {
               "listen": "test",
@@ -42,6 +42,66 @@
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"admin@biblio.test\",\n    \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/login_check", "host": ["{{baseUrl}}"], "path": ["api", "login_check"] }
+          }
+        },
+        {
+          "name": "Login adhérent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('jwt', pm.response.json().token);",
+                  "    pm.test('JWT enregistré', () => pm.expect(pm.collectionVariables.get('jwt')).to.be.a('string').and.not.empty);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"member1@biblio.test\",\n    \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/login_check", "host": ["{{baseUrl}}"], "path": ["api", "login_check"] }
+          }
+        },
+        {
+          "name": "Login bibliothécaire",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('jwt', pm.response.json().token);",
+                  "    pm.test('JWT enregistré', () => pm.expect(pm.collectionVariables.get('jwt')).to.be.a('string').and.not.empty);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"librarian@biblio.test\",\n    \"password\": \"password\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/login_check", "host": ["{{baseUrl}}"], "path": ["api", "login_check"] }
           }
@@ -114,11 +174,19 @@
           }
         },
         {
-          "name": "Valider un retour (bibliothécaire)",
+          "name": "Rendre un livre (adhérent)",
           "request": {
             "method": "POST",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/loans/1/return", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1", "return"] }
+          }
+        },
+        {
+          "name": "Valider le retour (bibliothécaire)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/loans/1/validate-return", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1", "validate-return"] }
           }
         },
         {
