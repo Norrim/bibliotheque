@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qa:
+    name: Lint, analyse & tests
+    runs-on: ubuntu-latest
+
+    services:
+      database:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: '!ChangeMe!'
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=16&charset=utf8"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: ctype, iconv, intl, pdo_pgsql, zip, apcu, opcache
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Generate JWT keypair
+        run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+      - name: Warm up cache (for PHPStan container analysis)
+        run: php bin/console cache:warmup
+
+      - name: PHP-CS-Fixer
+        run: composer cs
+
+      - name: PHPStan
+        run: composer stan
+
+      - name: Prepare test database
+        run: |
+          php bin/console --env=test doctrine:database:create --if-not-exists
+          php bin/console --env=test doctrine:migrations:migrate --no-interaction
+
+      - name: PHPUnit
+        run: php bin/phpunit
