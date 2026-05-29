@@ -1,0 +1,15 @@
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+    # On garde les assert()/instanceof défensifs dans les State sans faux positifs
+    # « toujours vrai » dus aux types PHPDoc d'API Platform.
+    treatPhpDocTypesAsCertain: false
+    excludePaths:
+        # Glue du framework : getAllowedEnvs() est appelée par réflexion.
+        - src/Kernel.php
+        # Bootstrap de tests généré par le recipe phpunit.
+        - tests/bootstrap.php
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
