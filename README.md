@@ -94,6 +94,19 @@ Le retour se fait en **deux temps** : l'adhérent *rend* son livre (statut
 `return_requested`), puis le bibliothécaire *valide* le retour (statut `returned`),
 ce qui remet le livre à disposition.
 
+### Gestion (CRUD)
+
+| Méthode | Route | Accès | Description |
+|---|---|---|---|
+| `POST` / `PUT` / `DELETE` | `/api/books` · `/api/books/{id}` | `ROLE_LIBRARIAN` | Gérer le catalogue |
+| `GET` / `POST` | `/api/members` | `ROLE_LIBRARIAN` | Lister / créer des adhérents |
+| `GET` / `PUT` / `DELETE` | `/api/members/{id}` | `ROLE_LIBRARIAN` | Consulter / modifier / supprimer un adhérent |
+| `GET` / `POST` | `/api/librarians` | `ROLE_ADMIN` | Lister / créer des comptes bibliothécaires |
+| `GET` / `PUT` / `DELETE` | `/api/librarians/{id}` | `ROLE_ADMIN` | Consulter / modifier / supprimer un bibliothécaire |
+
+La modification (`PUT`) d'un compte applique uniquement les champs fournis ; l'email
+n'est pas modifiable et un nouveau mot de passe n'est pris en compte que s'il est envoyé.
+
 Documentation interactive (Swagger UI) : **https://localhost/api**
 
 Codes de réponse notables : `201` (emprunt créé), `200` (retour validé),

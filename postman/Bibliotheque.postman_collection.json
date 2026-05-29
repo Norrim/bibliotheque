@@ -198,6 +198,121 @@
           }
         }
       ]
+    },
+    {
+      "name": "Gestion catalogue (bibliothécaire)",
+      "item": [
+        {
+          "name": "Créer un livre",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"title\": \"Nouveau livre\",\n    \"author\": \"Auteur\",\n    \"isbn\": \"9781234567897\",\n    \"publishedYear\": 2024\n}" },
+            "url": { "raw": "{{baseUrl}}/api/books", "host": ["{{baseUrl}}"], "path": ["api", "books"] }
+          }
+        },
+        {
+          "name": "Modifier un livre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"title\": \"Titre modifié\",\n    \"author\": \"Auteur\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+          }
+        },
+        {
+          "name": "Supprimer un livre",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestion adhérents (bibliothécaire)",
+      "item": [
+        {
+          "name": "Lister les adhérents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"] }
+          }
+        },
+        {
+          "name": "Créer un adhérent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"nouvel.adherent@biblio.test\",\n    \"password\": \"password\",\n    \"firstName\": \"Nouvel\",\n    \"lastName\": \"Adhérent\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"] }
+          }
+        },
+        {
+          "name": "Modifier un adhérent",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"firstName\": \"Prénom modifié\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/members/1", "host": ["{{baseUrl}}"], "path": ["api", "members", "1"] }
+          }
+        },
+        {
+          "name": "Supprimer un adhérent",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/members/1", "host": ["{{baseUrl}}"], "path": ["api", "members", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestion bibliothécaires (administrateur)",
+      "item": [
+        {
+          "name": "Lister les bibliothécaires",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/librarians", "host": ["{{baseUrl}}"], "path": ["api", "librarians"] }
+          }
+        },
+        {
+          "name": "Créer un bibliothécaire",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"nouveau.biblio@biblio.test\",\n    \"password\": \"password\",\n    \"firstName\": \"Nouveau\",\n    \"lastName\": \"Bibliothécaire\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/librarians", "host": ["{{baseUrl}}"], "path": ["api", "librarians"] }
+          }
+        },
+        {
+          "name": "Supprimer un bibliothécaire",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/librarians/1", "host": ["{{baseUrl}}"], "path": ["api", "librarians", "1"] }
+          }
+        }
+      ]
     }
   ]
 }
