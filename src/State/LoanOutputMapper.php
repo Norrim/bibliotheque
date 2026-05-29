@@ -27,6 +27,7 @@ final class LoanOutputMapper
         $output->bookTitle = $loan->getBook()->getTitle();
         $output->borrowedAt = $loan->getBorrowedAt();
         $output->dueAt = $loan->getDueAt();
+        $output->returnRequestedAt = $loan->getReturnRequestedAt();
         $output->returnedAt = $loan->getReturnedAt();
         $output->status = $loan->getStatus()->value;
         $output->overdue = $loan->isOverdue($this->clock->now());

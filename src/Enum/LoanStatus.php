@@ -11,6 +11,12 @@ namespace App\Enum;
  */
 enum LoanStatus: string
 {
+    /** Emprunt en cours : le livre est détenu par l'adhérent. */
     case Active = 'active';
+
+    /** L'adhérent a rendu le livre ; en attente de validation par le bibliothécaire. */
+    case ReturnRequested = 'return_requested';
+
+    /** Retour validé par le bibliothécaire ; le livre est de nouveau disponible. */
     case Returned = 'returned';
 }

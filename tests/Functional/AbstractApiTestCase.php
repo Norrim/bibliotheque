@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\Book;
+use App\Entity\Loan;
 use App\Entity\User;
 use App\Enum\UserRole;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,6 +53,15 @@ abstract class AbstractApiTestCase extends ApiTestCase
         $this->em->flush();
 
         return $book;
+    }
+
+    protected function createLoan(Book $book, User $borrower): Loan
+    {
+        $loan = new Loan($book, $borrower, new \DateTimeImmutable());
+        $this->em->persist($loan);
+        $this->em->flush();
+
+        return $loan;
     }
 
     protected function tokenFor(User $user): string

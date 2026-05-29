@@ -11,7 +11,8 @@ use ApiPlatform\Metadata\Post;
 use App\State\BorrowProcessor;
 use App\State\LoanItemProvider;
 use App\State\MyLoansProvider;
-use App\State\ReturnLoanProcessor;
+use App\State\RequestReturnProcessor;
+use App\State\ValidateReturnProcessor;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 /**
@@ -45,9 +46,20 @@ use Symfony\Component\Serializer\Attribute\Ignore;
             uriTemplate: '/loans/{id}/return',
             status: 200,
             requirements: ['id' => '\d+'],
+            provider: LoanItemProvider::class,
+            deserialize: false,
+            processor: RequestReturnProcessor::class,
+            security: "is_granted('LOAN_RETURN', object)",
+            securityMessage: 'Vous ne pouvez rendre que vos propres emprunts.',
+            description: 'Rendre un livre (adhérent : sur son propre emprunt).',
+        ),
+        new Post(
+            uriTemplate: '/loans/{id}/validate-return',
+            status: 200,
+            requirements: ['id' => '\d+'],
             read: false,
             deserialize: false,
-            processor: ReturnLoanProcessor::class,
+            processor: ValidateReturnProcessor::class,
             security: "is_granted('ROLE_LIBRARIAN')",
             description: 'Valider le retour d\'un emprunt (bibliothécaire).',
         ),
@@ -64,6 +76,8 @@ final class LoanOutput
     public \DateTimeImmutable $borrowedAt;
 
     public \DateTimeImmutable $dueAt;
+
+    public ?\DateTimeImmutable $returnRequestedAt = null;
 
     public ?\DateTimeImmutable $returnedAt = null;
 

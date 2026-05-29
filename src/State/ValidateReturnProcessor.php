@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\State;
+
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProcessorInterface;
+use App\ApiResource\LoanOutput;
+use App\Domain\Exception\DomainException;
+use App\Domain\LoanManager;
+use App\Repository\LoanRepository;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+/**
+ * Traite la validation d'un retour par le bibliothécaire : le livre redevient
+ * disponible.
+ *
+ * @implements ProcessorInterface<mixed, LoanOutput>
+ */
+final class ValidateReturnProcessor implements ProcessorInterface
+{
+    public function __construct(
+        private readonly LoanRepository $loans,
+        private readonly LoanManager $loanManager,
+        private readonly LoanOutputMapper $mapper,
+    ) {
+    }
+
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): LoanOutput
+    {
+        $id = $uriVariables['id'] ?? null;
+        $loan = is_numeric($id) ? $this->loans->find((int) $id) : null;
+        if (null === $loan) {
+            throw new NotFoundHttpException('Emprunt introuvable.');
+        }
+
+        try {
+            $this->loanManager->validateReturn($loan);
+        } catch (DomainException $e) {
+            throw new ConflictHttpException($e->getMessage(), $e);
+        }
+
+        return $this->mapper->map($loan);
+    }
+}

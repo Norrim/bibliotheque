@@ -73,4 +73,55 @@ final class LoanApiTest extends AbstractApiTestCase
         self::assertResponseIsSuccessful();
         self::assertJsonContains(['borrowedBooks' => 0]);
     }
+
+    public function testMemberReturnsThenLibrarianValidates(): void
+    {
+        $member = $this->createUser('member@test.local', UserRole::Member);
+        $loan = $this->createLoan($this->createBook('OL1W', '1984'), $member);
+        $memberToken = $this->tokenFor($member);
+        $librarianToken = $this->tokenFor($this->createUser('librarian@test.local', UserRole::Librarian));
+
+        // Étape 1 : l'adhérent rend le livre.
+        $this->client->request('POST', '/api/loans/'.$loan->getId().'/return', [
+            'auth_bearer' => $memberToken,
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+        self::assertResponseIsSuccessful();
+        self::assertJsonContains(['status' => 'return_requested']);
+
+        // Étape 2 : le bibliothécaire valide le retour.
+        $this->client->request('POST', '/api/loans/'.$loan->getId().'/validate-return', [
+            'auth_bearer' => $librarianToken,
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+        self::assertResponseIsSuccessful();
+        self::assertJsonContains(['status' => 'returned']);
+    }
+
+    public function testMemberCannotReturnSomeoneElsesLoan(): void
+    {
+        $owner = $this->createUser('owner@test.local', UserRole::Member);
+        $loan = $this->createLoan($this->createBook('OL1W', '1984'), $owner);
+        $otherToken = $this->tokenFor($this->createUser('intruder@test.local', UserRole::Member));
+
+        $this->client->request('POST', '/api/loans/'.$loan->getId().'/return', [
+            'auth_bearer' => $otherToken,
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testMemberCannotValidateReturn(): void
+    {
+        $member = $this->createUser('member@test.local', UserRole::Member);
+        $loan = $this->createLoan($this->createBook('OL1W', '1984'), $member);
+
+        $this->client->request('POST', '/api/loans/'.$loan->getId().'/validate-return', [
+            'auth_bearer' => $this->tokenFor($member),
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

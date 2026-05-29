@@ -14,11 +14,12 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Traite la restitution d'un emprunt (action réservée au bibliothécaire).
+ * Traite la restitution d'un emprunt par l'adhérent (« rendre ») : l'emprunt
+ * passe en attente de validation par un bibliothécaire.
  *
  * @implements ProcessorInterface<mixed, LoanOutput>
  */
-final class ReturnLoanProcessor implements ProcessorInterface
+final class RequestReturnProcessor implements ProcessorInterface
 {
     public function __construct(
         private readonly LoanRepository $loans,
@@ -36,7 +37,7 @@ final class ReturnLoanProcessor implements ProcessorInterface
         }
 
         try {
-            $this->loanManager->returnBook($loan);
+            $this->loanManager->requestReturn($loan);
         } catch (DomainException $e) {
             throw new ConflictHttpException($e->getMessage(), $e);
         }

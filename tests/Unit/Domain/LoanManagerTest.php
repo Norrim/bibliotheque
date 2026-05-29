@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain;
 
 use App\Domain\Exception\BookNotAvailableException;
-use App\Domain\Exception\LoanAlreadyReturnedException;
+use App\Domain\Exception\LoanNotActiveException;
 use App\Domain\Exception\MaxActiveLoansReachedException;
 use App\Domain\Exception\MemberHasOverdueLoanException;
+use App\Domain\Exception\ReturnNotAwaitingValidationException;
 use App\Domain\LoanManager;
 use App\Entity\Book;
 use App\Entity\Loan;
@@ -43,7 +44,7 @@ final class LoanManagerTest extends TestCase
 
         $this->loans->method('hasOverdueLoans')->willReturn(false);
         $this->loans->method('countActiveForBorrower')->willReturn(0);
-        $this->loans->method('hasActiveLoanForBook')->willReturn(false);
+        $this->loans->method('isBookOnLoan')->willReturn(false);
 
         $this->em->expects($this->once())->method('persist')->with($this->isInstanceOf(Loan::class));
         $this->em->expects($this->once())->method('flush');
@@ -59,7 +60,7 @@ final class LoanManagerTest extends TestCase
     {
         $this->loans->method('hasOverdueLoans')->willReturn(false);
         $this->loans->method('countActiveForBorrower')->willReturn(0);
-        $this->loans->method('hasActiveLoanForBook')->willReturn(false);
+        $this->loans->method('isBookOnLoan')->willReturn(false);
         $this->em->expects($this->once())->method('persist');
         $this->em->expects($this->once())->method('flush');
 
@@ -96,7 +97,7 @@ final class LoanManagerTest extends TestCase
     {
         $this->loans->method('hasOverdueLoans')->willReturn(false);
         $this->loans->method('countActiveForBorrower')->willReturn(1);
-        $this->loans->method('hasActiveLoanForBook')->willReturn(true);
+        $this->loans->method('isBookOnLoan')->willReturn(true);
         $this->em->expects($this->never())->method('persist');
 
         $this->expectException(BookNotAvailableException::class);
@@ -104,27 +105,52 @@ final class LoanManagerTest extends TestCase
         $this->manager->borrow(new User(), new Book('OL1W', 'Titre'));
     }
 
-    public function testReturnBookMarksLoanAsReturned(): void
+    public function testRequestReturnMovesActiveLoanToReturnRequested(): void
     {
         $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
 
         $this->em->expects($this->once())->method('flush');
 
-        $this->manager->returnBook($loan);
+        $this->manager->requestReturn($loan);
 
-        self::assertFalse($loan->isActive());
-        self::assertEquals(new \DateTimeImmutable(self::NOW), $loan->getReturnedAt());
+        self::assertTrue($loan->isReturnRequested());
+        self::assertEquals(new \DateTimeImmutable(self::NOW), $loan->getReturnRequestedAt());
+        self::assertNull($loan->getReturnedAt());
     }
 
-    public function testReturnBookIsRejectedWhenAlreadyReturned(): void
+    public function testRequestReturnIsRejectedWhenLoanNotActive(): void
     {
         $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
-        $loan->markReturned(new \DateTimeImmutable('2026-01-10 09:00:00'));
+        $loan->requestReturn(new \DateTimeImmutable('2026-01-10 09:00:00'));
 
         $this->em->expects($this->never())->method('flush');
 
-        $this->expectException(LoanAlreadyReturnedException::class);
+        $this->expectException(LoanNotActiveException::class);
 
-        $this->manager->returnBook($loan);
+        $this->manager->requestReturn($loan);
+    }
+
+    public function testValidateReturnMarksLoanAsReturned(): void
+    {
+        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+        $loan->requestReturn(new \DateTimeImmutable('2026-01-10 09:00:00'));
+
+        $this->em->expects($this->once())->method('flush');
+
+        $this->manager->validateReturn($loan);
+
+        self::assertSame('returned', $loan->getStatus()->value);
+        self::assertEquals(new \DateTimeImmutable(self::NOW), $loan->getReturnedAt());
+    }
+
+    public function testValidateReturnIsRejectedWhenNoReturnPending(): void
+    {
+        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+
+        $this->em->expects($this->never())->method('flush');
+
+        $this->expectException(ReturnNotAwaitingValidationException::class);
+
+        $this->manager->validateReturn($loan);
     }
 }

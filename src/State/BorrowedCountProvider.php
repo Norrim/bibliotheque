@@ -23,6 +23,6 @@ final class BorrowedCountProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): BorrowedCountOutput
     {
-        return new BorrowedCountOutput($this->loans->countActive());
+        return new BorrowedCountOutput($this->loans->countBooksOnLoan());
     }
 }

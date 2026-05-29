@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Domain;
 
 use App\Domain\Exception\BookNotAvailableException;
-use App\Domain\Exception\LoanAlreadyReturnedException;
+use App\Domain\Exception\LoanNotActiveException;
 use App\Domain\Exception\MaxActiveLoansReachedException;
 use App\Domain\Exception\MemberHasOverdueLoanException;
+use App\Domain\Exception\ReturnNotAwaitingValidationException;
 use App\Entity\Book;
 use App\Entity\Loan;
 use App\Entity\User;
@@ -57,7 +58,7 @@ final class LoanManager
             throw new MaxActiveLoansReachedException(self::MAX_ACTIVE_LOANS);
         }
 
-        if ($this->loans->hasActiveLoanForBook($book)) {
+        if ($this->loans->isBookOnLoan($book)) {
             throw new BookNotAvailableException();
         }
 
@@ -69,17 +70,33 @@ final class LoanManager
     }
 
     /**
-     * Enregistre la restitution d'un emprunt.
+     * Rendre un livre (action de l'adhérent) : l'emprunt passe en attente de
+     * validation. Le contrôle de propriété est assuré en amont (LoanVoter).
      *
-     * @throws LoanAlreadyReturnedException si l'emprunt a déjà été restitué
+     * @throws LoanNotActiveException si l'emprunt n'est pas en cours
      */
-    public function returnBook(Loan $loan): void
+    public function requestReturn(Loan $loan): void
     {
         if (!$loan->isActive()) {
-            throw new LoanAlreadyReturnedException();
+            throw new LoanNotActiveException();
         }
 
-        $loan->markReturned($this->clock->now());
+        $loan->requestReturn($this->clock->now());
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Valider un retour (action du bibliothécaire) : le livre redevient disponible.
+     *
+     * @throws ReturnNotAwaitingValidationException si aucun retour n'est en attente
+     */
+    public function validateReturn(Loan $loan): void
+    {
+        if (!$loan->isReturnRequested()) {
+            throw new ReturnNotAwaitingValidationException();
+        }
+
+        $loan->validateReturn($this->clock->now());
         $this->entityManager->flush();
     }
 }

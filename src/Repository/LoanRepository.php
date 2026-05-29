@@ -22,20 +22,23 @@ class LoanRepository extends ServiceEntityRepository
     }
 
     /**
-     * Nombre total de livres actuellement empruntés (emprunts actifs).
+     * Nombre total de livres actuellement empruntés : tant qu'un retour n'a pas
+     * été validé, le livre n'est pas revenu en rayon (statuts « active » et
+     * « return_requested »).
      */
-    public function countActive(): int
+    public function countBooksOnLoan(): int
     {
         return (int) $this->createQueryBuilder('l')
             ->select('COUNT(l.id)')
-            ->andWhere('l.status = :status')
-            ->setParameter('status', LoanStatus::Active)
+            ->andWhere('l.status != :returned')
+            ->setParameter('returned', LoanStatus::Returned)
             ->getQuery()
             ->getSingleScalarResult();
     }
 
     /**
-     * Nombre d'emprunts actifs d'un adhérent (pour la limite de 3).
+     * Nombre d'emprunts détenus par un adhérent (statut « active »), pour la
+     * limite de 3 : rendre un livre libère immédiatement le quota.
      */
     public function countActiveForBorrower(User $borrower): int
     {
@@ -69,16 +72,17 @@ class LoanRepository extends ServiceEntityRepository
     }
 
     /**
-     * Indique si un livre est actuellement emprunté (modèle à un exemplaire par livre).
+     * Indique si un livre est actuellement sorti (modèle à un exemplaire par
+     * livre) : il reste indisponible tant que son retour n'est pas validé.
      */
-    public function hasActiveLoanForBook(Book $book): bool
+    public function isBookOnLoan(Book $book): bool
     {
         $count = (int) $this->createQueryBuilder('l')
             ->select('COUNT(l.id)')
             ->andWhere('l.book = :book')
-            ->andWhere('l.status = :status')
+            ->andWhere('l.status != :returned')
             ->setParameter('book', $book)
-            ->setParameter('status', LoanStatus::Active)
+            ->setParameter('returned', LoanStatus::Returned)
             ->getQuery()
             ->getSingleScalarResult();
 

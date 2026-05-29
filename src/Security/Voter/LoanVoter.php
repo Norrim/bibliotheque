@@ -12,14 +12,17 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
- * Autorise la consultation d'un emprunt : le staff (bibliothécaire/admin) peut
- * consulter n'importe quel emprunt, un adhérent uniquement les siens.
+ * Règles d'accès sur un emprunt :
+ *  - LOAN_VIEW : le staff (bibliothécaire/admin) consulte n'importe quel emprunt,
+ *    un adhérent uniquement les siens ;
+ *  - LOAN_RETURN : seul le propriétaire de l'emprunt peut le rendre.
  *
  * @extends Voter<string, LoanOutput>
  */
 final class LoanVoter extends Voter
 {
     public const string VIEW = 'LOAN_VIEW';
+    public const string RETURN = 'LOAN_RETURN';
 
     public function __construct(
         private readonly Security $security,
@@ -28,7 +31,7 @@ final class LoanVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return self::VIEW === $attribute && $subject instanceof LoanOutput;
+        return \in_array($attribute, [self::VIEW, self::RETURN], true) && $subject instanceof LoanOutput;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -38,13 +41,15 @@ final class LoanVoter extends Voter
             return false;
         }
 
-        // Le staff (la hiérarchie de rôles fait que l'admin a aussi ROLE_LIBRARIAN).
-        if ($this->security->isGranted('ROLE_LIBRARIAN')) {
-            return true;
-        }
-
         \assert($subject instanceof LoanOutput);
+        $isOwner = $subject->borrowerId === $user->getId();
 
-        return $subject->borrowerId === $user->getId();
+        return match ($attribute) {
+            // Rendre un livre : action réservée à l'adhérent propriétaire.
+            self::RETURN => $isOwner,
+            // Consulter : le staff voit tout (l'admin hérite de ROLE_LIBRARIAN), sinon le propriétaire.
+            self::VIEW => $this->security->isGranted('ROLE_LIBRARIAN') || $isOwner,
+            default => false,
+        };
     }
 }

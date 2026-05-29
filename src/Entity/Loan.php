@@ -43,6 +43,15 @@ class Loan
     #[ORM\Column]
     private \DateTimeImmutable $dueAt;
 
+    /**
+     * Date à laquelle l'adhérent a rendu le livre (en attente de validation).
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $returnRequestedAt = null;
+
+    /**
+     * Date à laquelle le bibliothécaire a validé le retour.
+     */
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $returnedAt = null;
 
@@ -83,6 +92,11 @@ class Loan
         return $this->dueAt;
     }
 
+    public function getReturnRequestedAt(): ?\DateTimeImmutable
+    {
+        return $this->returnRequestedAt;
+    }
+
     public function getReturnedAt(): ?\DateTimeImmutable
     {
         return $this->returnedAt;
@@ -98,8 +112,14 @@ class Loan
         return LoanStatus::Active === $this->status;
     }
 
+    public function isReturnRequested(): bool
+    {
+        return LoanStatus::ReturnRequested === $this->status;
+    }
+
     /**
-     * Un emprunt est en retard s'il est encore actif et que son échéance est dépassée.
+     * Un emprunt est en retard s'il est encore détenu (actif) et que son échéance
+     * est dépassée.
      */
     public function isOverdue(\DateTimeImmutable $now): bool
     {
@@ -107,9 +127,20 @@ class Loan
     }
 
     /**
-     * Matérialise le retour du livre.
+     * Étape 1 du retour : l'adhérent rend le livre. L'emprunt passe en attente de
+     * validation par un bibliothécaire.
      */
-    public function markReturned(\DateTimeImmutable $returnedAt): void
+    public function requestReturn(\DateTimeImmutable $returnRequestedAt): void
+    {
+        $this->returnRequestedAt = $returnRequestedAt;
+        $this->status = LoanStatus::ReturnRequested;
+    }
+
+    /**
+     * Étape 2 du retour : le bibliothécaire valide le retour. Le livre redevient
+     * disponible.
+     */
+    public function validateReturn(\DateTimeImmutable $returnedAt): void
     {
         $this->returnedAt = $returnedAt;
         $this->status = LoanStatus::Returned;
