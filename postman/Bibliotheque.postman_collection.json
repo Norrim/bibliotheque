@@ -1,0 +1,135 @@
+{
+  "info": {
+    "name": "Bibliothèque API",
+    "description": "API REST d'emprunt de livres (test technique Symfony 8 / API Platform).\n\nUtilisation :\n1. Lancer l'API : `docker compose up -d --wait` (base initialisée automatiquement).\n2. Exécuter « Auth > Login » : le JWT est stocké dans la variable de collection `jwt` et réutilisé par toutes les autres requêtes.\n\nComptes de démonstration (mot de passe : `password`) :\n- admin@biblio.test (administrateur)\n- librarian@biblio.test (bibliothécaire)\n- member1@biblio.test … member100@biblio.test (adhérents)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost", "type": "string" },
+    { "key": "jwt", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (récupère le JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('jwt', pm.response.json().token);",
+                  "    pm.test('JWT enregistré', () => pm.expect(pm.collectionVariables.get('jwt')).to.be.a('string').and.not.empty);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@biblio.test\",\n    \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/login_check", "host": ["{{baseUrl}}"], "path": ["api", "login_check"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalogue",
+      "item": [
+        {
+          "name": "Lister les livres",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/books", "host": ["{{baseUrl}}"], "path": ["api", "books"] }
+          }
+        },
+        {
+          "name": "Filtrer par titre",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?title=the",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"],
+              "query": [{ "key": "title", "value": "the" }]
+            }
+          }
+        },
+        {
+          "name": "Détail d'un livre",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emprunts",
+      "item": [
+        {
+          "name": "Emprunter un livre (adhérent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookId\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/api/loans", "host": ["{{baseUrl}}"], "path": ["api", "loans"] }
+          }
+        },
+        {
+          "name": "Mes emprunts (adhérent)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/loans/me", "host": ["{{baseUrl}}"], "path": ["api", "loans", "me"] }
+          }
+        },
+        {
+          "name": "Détail d'un emprunt",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/loans/1", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1"] }
+          }
+        },
+        {
+          "name": "Valider un retour (bibliothécaire)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/loans/1/return", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1", "return"] }
+          }
+        },
+        {
+          "name": "Nombre de livres empruntés (bibliothécaire)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/loans/borrowed-count", "host": ["{{baseUrl}}"], "path": ["api", "loans", "borrowed-count"] }
+          }
+        }
+      ]
+    }
+  ]
+}

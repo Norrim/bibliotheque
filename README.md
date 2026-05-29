@@ -6,15 +6,19 @@ plusieurs front-ends (web et mobile).
 
 ## Stack technique
 
-- **Symfony 8** (PHP 8.5) — API construite avec **API Platform** (ressources exposées via des **DTO**)
-- **PostgreSQL**
+- **Symfony 8** (PHP 8.5) — API construite avec **API Platform**, ressources exposées via des **DTO** (les entités Doctrine ne sont jamais sérialisées)
+- **PostgreSQL 16**
 - **FrankenPHP** (serveur applicatif, basé sur le template officiel `dunglas/symfony-docker`)
 - **JWT** (LexikJWTAuthenticationBundle) pour l'authentification stateless
 - **Docker / Docker Compose** — démarrage en une commande
 
 ## Périmètre fonctionnel
 
-Trois rôles : **Adhérent**, **Bibliothécaire**, **Administrateur**.
+Trois rôles, hiérarchisés (`ROLE_ADMIN` > `ROLE_LIBRARIAN`, et `ROLE_MEMBER` distinct) :
+
+- **Adhérent** : consulte le catalogue, emprunte, consulte ses emprunts ;
+- **Bibliothécaire** : valide les retours, consulte le nombre de livres empruntés ;
+- **Administrateur** : tous les droits du bibliothécaire (+ gestion des comptes, extensible).
 
 Règles métier :
 - un adhérent peut emprunter **3 livres maximum** simultanément ;
@@ -24,18 +28,122 @@ Règles métier :
 
 Données :
 - **100 adhérents** et **100 livres** (issus de l'API **OpenLibrary**) sont injectés à l'initialisation ;
-- le catalogue de livres est **mis à jour chaque nuit**.
+- le catalogue de livres est **mis à jour chaque nuit** (3h) via le Symfony Scheduler.
 
 ## Démarrage
 
-Prérequis : Docker et Docker Compose.
+Prérequis : **Docker** et **Docker Compose**. Aucune installation de PHP/Composer requise.
 
 ```bash
 docker compose up -d --wait
 ```
 
-L'API est disponible sur https://localhost (certificat auto-signé en développement).
+Au premier démarrage, l'application s'initialise automatiquement : génération des clés
+JWT, exécution des migrations, chargement des fixtures (utilisateurs) et import des
+100 livres depuis OpenLibrary. L'API est alors disponible sur **https://localhost**
+(certificat TLS auto-signé en développement — voir la note ci-dessous).
 
-## Développement
+> **Certificat auto-signé** : le navigateur affiche un avertissement « non sécurisé »,
+> ce qui est normal en local. Pour les appels API (Postman, `curl -k`), utilisez
+> l'option « ignorer la vérification SSL ».
 
-> Documentation détaillée (endpoints, comptes de démo, collection Postman) ajoutée au fil des étapes.
+Arrêt :
+
+```bash
+docker compose down            # arrêt
+docker compose down -v         # arrêt + suppression des données (réinitialisation)
+```
+
+## Comptes de démonstration
+
+Mot de passe commun : **`password`**
+
+| Email | Rôle |
+|---|---|
+| `admin@biblio.test` | Administrateur |
+| `librarian@biblio.test` | Bibliothécaire |
+| `member1@biblio.test` … `member100@biblio.test` | Adhérents |
+
+## Authentification
+
+L'API est stateless : on récupère un JWT via `POST /api/login_check`, puis on
+l'envoie dans l'en-tête `Authorization: Bearer <token>`.
+
+```bash
+curl -k -X POST https://localhost/api/login_check \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"member1@biblio.test","password":"password"}'
+```
+
+## Endpoints
+
+| Méthode | Route | Accès | Description |
+|---|---|---|---|
+| `POST` | `/api/login_check` | public | Authentification, renvoie un JWT |
+| `GET` | `/api/books` | authentifié | Catalogue paginé |
+| `GET` | `/api/books?title=…` | authentifié | Filtre par titre |
+| `GET` | `/api/books/{id}` | authentifié | Détail d'un livre |
+| `POST` | `/api/loans` | `ROLE_MEMBER` | Emprunter un livre (`{ "bookId": 1 }`) |
+| `GET` | `/api/loans/me` | `ROLE_MEMBER` | Mes emprunts |
+| `GET` | `/api/loans/{id}` | propriétaire ou staff | Détail d'un emprunt |
+| `POST` | `/api/loans/{id}/return` | `ROLE_LIBRARIAN` | Valider un retour |
+| `GET` | `/api/loans/borrowed-count` | `ROLE_LIBRARIAN` | Nombre de livres actuellement empruntés |
+
+Documentation interactive (Swagger UI) : **https://localhost/api**
+
+Codes de réponse notables : `201` (emprunt créé), `200` (retour validé),
+`409` (règle métier violée : indisponible, retard, limite atteinte),
+`422` (données invalides), `401`/`403` (authentification / autorisation).
+
+## Collection Postman
+
+`postman/Bibliotheque.postman_collection.json` — couvre tous les endpoints.
+La requête « Auth > Login » enregistre automatiquement le JWT dans la variable de
+collection `jwt`, réutilisée par les autres requêtes. Variable `baseUrl` =
+`https://localhost`.
+
+## Tests et qualité
+
+Outils exécutés dans le conteneur `php` :
+
+```bash
+docker compose exec php composer test     # PHPUnit (tests unitaires + fonctionnels)
+docker compose exec php composer stan     # PHPStan (niveau max)
+docker compose exec php composer cs        # PHP-CS-Fixer (vérification)
+docker compose exec php composer cs:fix    # PHP-CS-Fixer (correction)
+```
+
+- **Tests unitaires** : règles métier d'emprunt (`LoanManager`) avec horloge mockée, mapping OpenLibrary.
+- **Tests fonctionnels** : endpoints API (auth, catalogue, emprunt, autorisations) isolés par transaction (DAMA DoctrineTestBundle).
+- **CI** : GitHub Actions exécute CS-Fixer, PHPStan et PHPUnit (`.github/workflows/ci.yml`).
+
+## Architecture
+
+```
+src/
+├── ApiResource/   # DTO exposés par API Platform (Book, Loan, entrées/sorties)
+├── Command/       # app:books:sync, app:demo:init
+├── DataFixtures/  # utilisateurs de démonstration
+├── Domain/        # logique métier (LoanManager), exceptions, client OpenLibrary
+├── Entity/        # entités Doctrine (non exposées directement)
+├── Enum/          # UserRole, LoanStatus
+├── Repository/    # requêtes (emprunts actifs, retard, disponibilité…)
+├── Scheduler/     # planification de la synchronisation nocturne
+├── Security/      # Voter (consultation des emprunts)
+└── State/         # providers / processors API Platform (mapping entité ↔ DTO)
+```
+
+Choix structurants :
+- **DTO + State Providers/Processors** : découplage total entre le modèle de
+  persistance et le contrat d'API ; les entités ne sont jamais sérialisées.
+- **Logique métier dans `LoanManager`** (service de domaine), avec une **horloge
+  injectée** (`Psr\Clock`) pour des règles testables ; exceptions de domaine
+  traduites en `409 Conflict`.
+- **Autorisation** par hiérarchie de rôles + **Voter** pour les règles fines
+  (un adhérent ne consulte que ses propres emprunts).
+- **Synchronisation OpenLibrary** isolée dans une commande idempotente
+  (`app:books:sync`, upsert par clé OpenLibrary), réutilisée pour l'initialisation
+  et la mise à jour nocturne (Scheduler + worker dédié).
+
+> **Modèle de disponibilité** : un livre est considéré à exemplaire unique ; il est
+> indisponible tant qu'un emprunt actif le concerne.
