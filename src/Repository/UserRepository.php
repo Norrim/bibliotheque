@@ -34,4 +34,22 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * Retourne les utilisateurs possédant un rôle donné, triés par identifiant.
+     *
+     * Le filtrage est fait en PHP : le volume (≈ une centaine de comptes) reste
+     * modeste et cela évite une requête JSON dépendante du SGBD.
+     *
+     * @return list<User>
+     */
+    public function findByRole(string $role): array
+    {
+        $users = array_filter(
+            $this->findBy([], ['id' => 'ASC']),
+            static fn (User $user): bool => \in_array($role, $user->getRoles(), true),
+        );
+
+        return array_values($users);
+    }
 }
