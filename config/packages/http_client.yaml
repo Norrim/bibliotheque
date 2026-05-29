@@ -1,0 +1,10 @@
+framework:
+    http_client:
+        scoped_clients:
+            # Client dédié à l'API OpenLibrary (source du catalogue).
+            openlibrary:
+                base_uri: '%env(OPENLIBRARY_BASE_URI)%'
+                headers:
+                    User-Agent: 'BibliothequeApp/1.0 (test technique Symfony)'
+                timeout: 10
+                max_duration: 30
