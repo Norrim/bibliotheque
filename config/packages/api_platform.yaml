@@ -2,6 +2,10 @@ api_platform:
     title: Bibliothèque API
     description: API REST d'emprunt de livres pour une bibliothèque municipale.
     version: 1.0.0
+    # Formats exposés : JSON brut (front web/mobile) et JSON-LD/Hydra.
+    formats:
+        json: ['application/json']
+        jsonld: ['application/ld+json']
     defaults:
         stateless: true
         cache_headers:
