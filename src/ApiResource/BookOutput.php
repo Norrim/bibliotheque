@@ -8,9 +8,14 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Book;
+use App\State\BookDeleteProcessor;
+use App\State\BookPersistProcessor;
 use App\State\BookProvider;
 
 /**
@@ -25,6 +30,30 @@ use App\State\BookProvider;
     operations: [
         new GetCollection(),
         new Get(),
+        new Post(
+            input: BookInput::class,
+            processor: BookPersistProcessor::class,
+            security: "is_granted('ROLE_LIBRARIAN')",
+            read: false,
+            description: 'Ajouter un livre au catalogue (bibliothécaire).',
+        ),
+        new Put(
+            uriTemplate: '/books/{id}',
+            requirements: ['id' => '\d+'],
+            input: BookInput::class,
+            processor: BookPersistProcessor::class,
+            security: "is_granted('ROLE_LIBRARIAN')",
+            read: false,
+            description: 'Modifier un livre (bibliothécaire).',
+        ),
+        new Delete(
+            uriTemplate: '/books/{id}',
+            requirements: ['id' => '\d+'],
+            processor: BookDeleteProcessor::class,
+            security: "is_granted('ROLE_LIBRARIAN')",
+            read: false,
+            description: 'Supprimer un livre (bibliothécaire).',
+        ),
     ],
     provider: BookProvider::class,
     stateOptions: new Options(entityClass: Book::class),

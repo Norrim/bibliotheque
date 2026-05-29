@@ -39,7 +39,7 @@ final class LoanManagerTest extends TestCase
 
     public function testBorrowCreatesAndPersistsLoanWhenAllRulesPass(): void
     {
-        $book = new Book('OL1W', 'Le Petit Prince');
+        $book = new Book('Le Petit Prince');
         $borrower = new User();
 
         $this->loans->method('hasOverdueLoans')->willReturn(false);
@@ -64,7 +64,7 @@ final class LoanManagerTest extends TestCase
         $this->em->expects($this->once())->method('persist');
         $this->em->expects($this->once())->method('flush');
 
-        $loan = $this->manager->borrow(new User(), new Book('OL1W', 'Titre'));
+        $loan = $this->manager->borrow(new User(), new Book('Titre'));
 
         self::assertEquals(new \DateTimeImmutable(self::NOW), $loan->getBorrowedAt());
         // 21 jours après le 15 janvier => 5 février.
@@ -79,7 +79,7 @@ final class LoanManagerTest extends TestCase
 
         $this->expectException(MemberHasOverdueLoanException::class);
 
-        $this->manager->borrow(new User(), new Book('OL1W', 'Titre'));
+        $this->manager->borrow(new User(), new Book('Titre'));
     }
 
     public function testBorrowIsRejectedWhenThreeActiveLoansReached(): void
@@ -90,7 +90,7 @@ final class LoanManagerTest extends TestCase
 
         $this->expectException(MaxActiveLoansReachedException::class);
 
-        $this->manager->borrow(new User(), new Book('OL1W', 'Titre'));
+        $this->manager->borrow(new User(), new Book('Titre'));
     }
 
     public function testBorrowIsRejectedWhenBookIsNotAvailable(): void
@@ -102,12 +102,12 @@ final class LoanManagerTest extends TestCase
 
         $this->expectException(BookNotAvailableException::class);
 
-        $this->manager->borrow(new User(), new Book('OL1W', 'Titre'));
+        $this->manager->borrow(new User(), new Book('Titre'));
     }
 
     public function testRequestReturnMovesActiveLoanToReturnRequested(): void
     {
-        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+        $loan = new Loan(new Book('Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
 
         $this->em->expects($this->once())->method('flush');
 
@@ -120,7 +120,7 @@ final class LoanManagerTest extends TestCase
 
     public function testRequestReturnIsRejectedWhenLoanNotActive(): void
     {
-        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+        $loan = new Loan(new Book('Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
         $loan->requestReturn(new \DateTimeImmutable('2026-01-10 09:00:00'));
 
         $this->em->expects($this->never())->method('flush');
@@ -132,7 +132,7 @@ final class LoanManagerTest extends TestCase
 
     public function testValidateReturnMarksLoanAsReturned(): void
     {
-        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+        $loan = new Loan(new Book('Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
         $loan->requestReturn(new \DateTimeImmutable('2026-01-10 09:00:00'));
 
         $this->em->expects($this->once())->method('flush');
@@ -145,7 +145,7 @@ final class LoanManagerTest extends TestCase
 
     public function testValidateReturnIsRejectedWhenNoReturnPending(): void
     {
-        $loan = new Loan(new Book('OL1W', 'Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
+        $loan = new Loan(new Book('Titre'), new User(), new \DateTimeImmutable('2026-01-01 09:00:00'));
 
         $this->em->expects($this->never())->method('flush');
 

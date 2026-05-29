@@ -48,7 +48,7 @@ abstract class AbstractApiTestCase extends ApiTestCase
 
     protected function createBook(string $openLibraryKey, string $title): Book
     {
-        $book = new Book($openLibraryKey, $title);
+        $book = new Book($title, $openLibraryKey);
         $this->em->persist($book);
         $this->em->flush();
 

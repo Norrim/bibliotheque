@@ -33,6 +33,7 @@ final class BookProvider implements ProviderInterface
         private readonly ProviderInterface $collectionProvider,
         #[Autowire(service: ItemProvider::class)]
         private readonly ProviderInterface $itemProvider,
+        private readonly BookOutputMapper $mapper,
     ) {
     }
 
@@ -44,7 +45,7 @@ final class BookProvider implements ProviderInterface
             $items = [];
             if (is_iterable($books)) {
                 foreach ($books as $book) {
-                    $items[] = self::toOutput($book);
+                    $items[] = $this->mapper->map($book);
                 }
             }
 
@@ -62,19 +63,6 @@ final class BookProvider implements ProviderInterface
 
         $book = $this->itemProvider->provide($operation, $uriVariables, $context);
 
-        return $book instanceof Book ? self::toOutput($book) : null;
-    }
-
-    private static function toOutput(Book $book): BookOutput
-    {
-        $output = new BookOutput();
-        $output->id = (int) $book->getId();
-        $output->title = $book->getTitle();
-        $output->author = $book->getAuthor();
-        $output->isbn = $book->getIsbn();
-        $output->coverUrl = $book->getCoverUrl();
-        $output->publishedYear = $book->getPublishedYear();
-
-        return $output;
+        return $book instanceof Book ? $this->mapper->map($book) : null;
     }
 }

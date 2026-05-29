@@ -70,7 +70,7 @@ final class SyncBooksCommand extends Command
             $book = $this->books->findOneByOpenLibraryKey($item->openLibraryKey);
 
             if (null === $book) {
-                $book = new Book($item->openLibraryKey, $item->title);
+                $book = new Book($item->title, $item->openLibraryKey);
                 $this->entityManager->persist($book);
                 ++$created;
             } else {

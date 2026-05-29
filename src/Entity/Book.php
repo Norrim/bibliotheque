@@ -36,10 +36,10 @@ class Book
 
     /**
      * Clé OpenLibrary (ex. "OL45804W"), unique : identifie le livre source.
+     * Nulle pour un livre ajouté manuellement par un bibliothécaire.
      */
-    #[ORM\Column(length: 50, unique: true)]
-    #[Assert\NotBlank]
-    private string $openLibraryKey;
+    #[ORM\Column(length: 50, unique: true, nullable: true)]
+    private ?string $openLibraryKey = null;
 
     #[ORM\Column(length: 1024, nullable: true)]
     private ?string $coverUrl = null;
@@ -53,10 +53,10 @@ class Book
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(string $openLibraryKey, string $title)
+    public function __construct(string $title, ?string $openLibraryKey = null)
     {
-        $this->openLibraryKey = $openLibraryKey;
         $this->title = $title;
+        $this->openLibraryKey = $openLibraryKey;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
     }
@@ -108,7 +108,7 @@ class Book
         return $this;
     }
 
-    public function getOpenLibraryKey(): string
+    public function getOpenLibraryKey(): ?string
     {
         return $this->openLibraryKey;
     }
