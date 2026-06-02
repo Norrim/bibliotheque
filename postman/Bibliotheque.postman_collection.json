@@ -137,7 +137,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/book/1", "host": ["{{baseUrl}}"], "path": ["api", "book", "1"] }
           }
         }
       ]
@@ -170,7 +170,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/loans/1", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/loan/1", "host": ["{{baseUrl}}"], "path": ["api", "loan", "1"] }
           }
         },
         {
@@ -178,7 +178,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/loans/1/return", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1", "return"] }
+            "url": { "raw": "{{baseUrl}}/api/loan/1/return", "host": ["{{baseUrl}}"], "path": ["api", "loan", "1", "return"] }
           }
         },
         {
@@ -186,7 +186,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/loans/1/validate-return", "host": ["{{baseUrl}}"], "path": ["api", "loans", "1", "validate-return"] }
+            "url": { "raw": "{{baseUrl}}/api/loan/1/validate-return", "host": ["{{baseUrl}}"], "path": ["api", "loan", "1", "validate-return"] }
           }
         },
         {
@@ -223,7 +223,7 @@
               { "key": "Accept", "value": "application/json" }
             ],
             "body": { "mode": "raw", "raw": "{\n    \"title\": \"Titre modifié\",\n    \"author\": \"Auteur\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/book/1", "host": ["{{baseUrl}}"], "path": ["api", "book", "1"] }
           }
         },
         {
@@ -231,7 +231,7 @@
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/books/1", "host": ["{{baseUrl}}"], "path": ["api", "books", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/book/1", "host": ["{{baseUrl}}"], "path": ["api", "book", "1"] }
           }
         }
       ]
@@ -268,7 +268,7 @@
               { "key": "Accept", "value": "application/json" }
             ],
             "body": { "mode": "raw", "raw": "{\n    \"firstName\": \"Prénom modifié\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/members/1", "host": ["{{baseUrl}}"], "path": ["api", "members", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/member/1", "host": ["{{baseUrl}}"], "path": ["api", "member", "1"] }
           }
         },
         {
@@ -276,7 +276,7 @@
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/members/1", "host": ["{{baseUrl}}"], "path": ["api", "members", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/member/1", "host": ["{{baseUrl}}"], "path": ["api", "member", "1"] }
           }
         }
       ]
@@ -309,7 +309,7 @@
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/librarians/1", "host": ["{{baseUrl}}"], "path": ["api", "librarians", "1"] }
+            "url": { "raw": "{{baseUrl}}/api/librarian/1", "host": ["{{baseUrl}}"], "path": ["api", "librarian", "1"] }
           }
         }
       ]

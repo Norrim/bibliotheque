@@ -29,7 +29,10 @@ use App\State\BookProvider;
     shortName: 'Book',
     operations: [
         new GetCollection(),
-        new Get(),
+        new Get(
+            uriTemplate: '/book/{id}',
+            requirements: ['id' => '\d+'],
+        ),
         new Post(
             input: BookInput::class,
             processor: BookPersistProcessor::class,
@@ -38,7 +41,7 @@ use App\State\BookProvider;
             description: 'Ajouter un livre au catalogue (bibliothécaire).',
         ),
         new Put(
-            uriTemplate: '/books/{id}',
+            uriTemplate: '/book/{id}',
             requirements: ['id' => '\d+'],
             input: BookInput::class,
             processor: BookPersistProcessor::class,
@@ -47,7 +50,7 @@ use App\State\BookProvider;
             description: 'Modifier un livre (bibliothécaire).',
         ),
         new Delete(
-            uriTemplate: '/books/{id}',
+            uriTemplate: '/book/{id}',
             requirements: ['id' => '\d+'],
             processor: BookDeleteProcessor::class,
             security: "is_granted('ROLE_LIBRARIAN')",

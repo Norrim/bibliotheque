@@ -26,7 +26,7 @@ use App\State\LibrarianProvider;
             description: 'Lister les bibliothécaires (administrateur).',
         ),
         new Get(
-            uriTemplate: '/librarians/{id}',
+            uriTemplate: '/librarian/{id}',
             requirements: ['id' => '\d+'],
             provider: LibrarianProvider::class,
         ),
@@ -38,7 +38,7 @@ use App\State\LibrarianProvider;
             description: 'Créer un compte bibliothécaire (administrateur).',
         ),
         new Put(
-            uriTemplate: '/librarians/{id}',
+            uriTemplate: '/librarian/{id}',
             requirements: ['id' => '\d+'],
             input: AccountUpdateInput::class,
             processor: LibrarianPersistProcessor::class,
@@ -46,7 +46,7 @@ use App\State\LibrarianProvider;
             description: 'Modifier un bibliothécaire — champs fournis uniquement (administrateur).',
         ),
         new Delete(
-            uriTemplate: '/librarians/{id}',
+            uriTemplate: '/librarian/{id}',
             requirements: ['id' => '\d+'],
             processor: LibrarianDeleteProcessor::class,
             read: false,

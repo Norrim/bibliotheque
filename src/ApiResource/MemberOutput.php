@@ -26,7 +26,7 @@ use App\State\MemberProvider;
             description: 'Lister les adhérents (bibliothécaire).',
         ),
         new Get(
-            uriTemplate: '/members/{id}',
+            uriTemplate: '/member/{id}',
             requirements: ['id' => '\d+'],
             provider: MemberProvider::class,
         ),
@@ -38,7 +38,7 @@ use App\State\MemberProvider;
             description: 'Créer un adhérent (bibliothécaire).',
         ),
         new Put(
-            uriTemplate: '/members/{id}',
+            uriTemplate: '/member/{id}',
             requirements: ['id' => '\d+'],
             input: AccountUpdateInput::class,
             processor: MemberPersistProcessor::class,
@@ -46,7 +46,7 @@ use App\State\MemberProvider;
             description: 'Modifier un adhérent — champs fournis uniquement (bibliothécaire).',
         ),
         new Delete(
-            uriTemplate: '/members/{id}',
+            uriTemplate: '/member/{id}',
             requirements: ['id' => '\d+'],
             processor: MemberDeleteProcessor::class,
             read: false,

@@ -53,7 +53,7 @@ final class CatalogManagementApiTest extends AbstractApiTestCase
         $book = $this->createBook('OL1W', 'Ancien titre');
         $token = $this->tokenFor($this->createUser('lib@test.local', UserRole::Librarian));
 
-        $this->client->request('PUT', '/api/books/'.$book->getId(), [
+        $this->client->request('PUT', '/api/book/'.$book->getId(), [
             'auth_bearer' => $token,
             'headers' => ['Accept' => 'application/json'],
             'json' => ['title' => 'Titre modifié'],
@@ -68,7 +68,7 @@ final class CatalogManagementApiTest extends AbstractApiTestCase
         $book = $this->createBook('OL1W', 'À supprimer');
         $token = $this->tokenFor($this->createUser('lib@test.local', UserRole::Librarian));
 
-        $this->client->request('DELETE', '/api/books/'.$book->getId(), [
+        $this->client->request('DELETE', '/api/book/'.$book->getId(), [
             'auth_bearer' => $token,
             'headers' => ['Accept' => 'application/json'],
         ]);

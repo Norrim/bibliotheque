@@ -82,7 +82,7 @@ final class LoanApiTest extends AbstractApiTestCase
         $librarianToken = $this->tokenFor($this->createUser('librarian@test.local', UserRole::Librarian));
 
         // Étape 1 : l'adhérent rend le livre.
-        $this->client->request('POST', '/api/loans/'.$loan->getId().'/return', [
+        $this->client->request('POST', '/api/loan/'.$loan->getId().'/return', [
             'auth_bearer' => $memberToken,
             'headers' => ['Accept' => 'application/json'],
         ]);
@@ -90,7 +90,7 @@ final class LoanApiTest extends AbstractApiTestCase
         self::assertJsonContains(['status' => 'return_requested']);
 
         // Étape 2 : le bibliothécaire valide le retour.
-        $this->client->request('POST', '/api/loans/'.$loan->getId().'/validate-return', [
+        $this->client->request('POST', '/api/loan/'.$loan->getId().'/validate-return', [
             'auth_bearer' => $librarianToken,
             'headers' => ['Accept' => 'application/json'],
         ]);
@@ -104,7 +104,7 @@ final class LoanApiTest extends AbstractApiTestCase
         $loan = $this->createLoan($this->createBook('OL1W', '1984'), $owner);
         $otherToken = $this->tokenFor($this->createUser('intruder@test.local', UserRole::Member));
 
-        $this->client->request('POST', '/api/loans/'.$loan->getId().'/return', [
+        $this->client->request('POST', '/api/loan/'.$loan->getId().'/return', [
             'auth_bearer' => $otherToken,
             'headers' => ['Accept' => 'application/json'],
         ]);
@@ -117,7 +117,7 @@ final class LoanApiTest extends AbstractApiTestCase
         $member = $this->createUser('member@test.local', UserRole::Member);
         $loan = $this->createLoan($this->createBook('OL1W', '1984'), $member);
 
-        $this->client->request('POST', '/api/loans/'.$loan->getId().'/validate-return', [
+        $this->client->request('POST', '/api/loan/'.$loan->getId().'/validate-return', [
             'auth_bearer' => $this->tokenFor($member),
             'headers' => ['Accept' => 'application/json'],
         ]);
