@@ -35,7 +35,7 @@ Données :
 Prérequis : **Docker** et **Docker Compose**. Aucune installation de PHP/Composer requise.
 
 ```bash
-docker compose up -d --wait
+docker compose up -d --wait     # ou, plus court : make up
 ```
 
 Au premier démarrage, l'application s'initialise automatiquement : génération des clés
@@ -50,9 +50,23 @@ JWT, exécution des migrations, chargement des fixtures (utilisateurs) et import
 Arrêt :
 
 ```bash
-docker compose down            # arrêt
+docker compose down            # arrêt (ou : make down)
 docker compose down -v         # arrêt + suppression des données (réinitialisation)
 ```
+
+### Raccourcis (Makefile)
+
+Un `Makefile` regroupe les commandes courantes ; tout s'exécute dans le conteneur
+`php`, sans installation locale de PHP/Composer. `make help` liste toutes les cibles.
+
+| Commande | Effet |
+|---|---|
+| `make up` · `make down` | Démarre · arrête les conteneurs |
+| `make setup` | Démarrage + clés JWT + migrations + données de démo |
+| `make sh` | Ouvre un shell dans le conteneur `php` |
+| `make init` · `make sync` | (Ré)initialise les données de démo · synchronise le catalogue OpenLibrary |
+| `make test` · `make qa` | Tests · les trois gates de la CI (cs + stan + test) |
+| `make console c="…"` | Commande Symfony, ex. `make console c="debug:router"` |
 
 ## Comptes de démonstration
 
@@ -136,6 +150,9 @@ docker compose exec php composer stan     # PHPStan (niveau max)
 docker compose exec php composer cs        # PHP-CS-Fixer (vérification)
 docker compose exec php composer cs:fix    # PHP-CS-Fixer (correction)
 ```
+
+Raccourcis Makefile : `make test`, `make stan`, `make cs`, `make cs-fix`, ou
+`make qa` pour enchaîner les trois gates de la CI en une commande.
 
 - **Tests unitaires** : règles métier d'emprunt (`LoanManager`) avec horloge mockée, mapping OpenLibrary.
 - **Tests fonctionnels** : endpoints API (auth, catalogue, emprunt, autorisations) isolés par transaction (DAMA DoctrineTestBundle).
