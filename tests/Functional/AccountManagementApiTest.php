@@ -60,7 +60,7 @@ final class AccountManagementApiTest extends AbstractApiTestCase
         $member = $this->createUser('target@test.local', UserRole::Member);
         $token = $this->tokenFor($this->createUser('lib@test.local', UserRole::Librarian));
 
-        $this->client->request('PUT', '/api/members/'.$member->getId(), [
+        $this->client->request('PUT', '/api/member/'.$member->getId(), [
             'auth_bearer' => $token,
             'headers' => ['Accept' => 'application/json'],
             'json' => ['firstName' => 'Modifié'],
@@ -68,7 +68,7 @@ final class AccountManagementApiTest extends AbstractApiTestCase
         self::assertResponseIsSuccessful();
         self::assertJsonContains(['firstName' => 'Modifié']);
 
-        $this->client->request('DELETE', '/api/members/'.$member->getId(), [
+        $this->client->request('DELETE', '/api/member/'.$member->getId(), [
             'auth_bearer' => $token,
             'headers' => ['Accept' => 'application/json'],
         ]);

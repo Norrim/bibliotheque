@@ -82,12 +82,12 @@ curl -k -X POST https://localhost/api/login_check \
 | `POST` | `/api/login_check` | public | Authentification, renvoie un JWT |
 | `GET` | `/api/books` | authentifié | Catalogue paginé |
 | `GET` | `/api/books?title=…` | authentifié | Filtre par titre |
-| `GET` | `/api/books/{id}` | authentifié | Détail d'un livre |
+| `GET` | `/api/book/{id}` | authentifié | Détail d'un livre |
 | `POST` | `/api/loans` | `ROLE_MEMBER` | Emprunter un livre (`{ "bookId": 1 }`) |
 | `GET` | `/api/loans/me` | `ROLE_MEMBER` | Mes emprunts |
-| `GET` | `/api/loans/{id}` | propriétaire ou staff | Détail d'un emprunt |
-| `POST` | `/api/loans/{id}/return` | propriétaire (adhérent) | **Rendre** un livre (étape 1) |
-| `POST` | `/api/loans/{id}/validate-return` | `ROLE_LIBRARIAN` | **Valider** le retour (étape 2) |
+| `GET` | `/api/loan/{id}` | propriétaire ou staff | Détail d'un emprunt |
+| `POST` | `/api/loan/{id}/return` | propriétaire (adhérent) | **Rendre** un livre (étape 1) |
+| `POST` | `/api/loan/{id}/validate-return` | `ROLE_LIBRARIAN` | **Valider** le retour (étape 2) |
 | `GET` | `/api/loans/borrowed-count` | `ROLE_LIBRARIAN` | Nombre de livres actuellement empruntés |
 
 Le retour se fait en **deux temps** : l'adhérent *rend* son livre (statut
@@ -98,11 +98,11 @@ ce qui remet le livre à disposition.
 
 | Méthode | Route | Accès | Description |
 |---|---|---|---|
-| `POST` / `PUT` / `DELETE` | `/api/books` · `/api/books/{id}` | `ROLE_LIBRARIAN` | Gérer le catalogue |
+| `POST` / `PUT` / `DELETE` | `/api/books` · `/api/book/{id}` | `ROLE_LIBRARIAN` | Gérer le catalogue |
 | `GET` / `POST` | `/api/members` | `ROLE_LIBRARIAN` | Lister / créer des adhérents |
-| `GET` / `PUT` / `DELETE` | `/api/members/{id}` | `ROLE_LIBRARIAN` | Consulter / modifier / supprimer un adhérent |
+| `GET` / `PUT` / `DELETE` | `/api/member/{id}` | `ROLE_LIBRARIAN` | Consulter / modifier / supprimer un adhérent |
 | `GET` / `POST` | `/api/librarians` | `ROLE_ADMIN` | Lister / créer des comptes bibliothécaires |
-| `GET` / `PUT` / `DELETE` | `/api/librarians/{id}` | `ROLE_ADMIN` | Consulter / modifier / supprimer un bibliothécaire |
+| `GET` / `PUT` / `DELETE` | `/api/librarian/{id}` | `ROLE_ADMIN` | Consulter / modifier / supprimer un bibliothécaire |
 
 La modification (`PUT`) d'un compte applique uniquement les champs fournis ; l'email
 n'est pas modifiable et un nouveau mot de passe n'est pris en compte que s'il est envoyé.

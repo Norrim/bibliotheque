@@ -29,7 +29,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
             description: 'Liste des emprunts de l\'adhérent authentifié.',
         ),
         new Get(
-            uriTemplate: '/loans/{id}',
+            uriTemplate: '/loan/{id}',
             requirements: ['id' => '\d+'],
             provider: LoanItemProvider::class,
             security: "is_granted('LOAN_VIEW', object)",
@@ -43,7 +43,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
             description: 'Emprunter un livre (adhérent authentifié).',
         ),
         new Post(
-            uriTemplate: '/loans/{id}/return',
+            uriTemplate: '/loan/{id}/return',
             status: 200,
             requirements: ['id' => '\d+'],
             provider: LoanItemProvider::class,
@@ -54,7 +54,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
             description: 'Rendre un livre (adhérent : sur son propre emprunt).',
         ),
         new Post(
-            uriTemplate: '/loans/{id}/validate-return',
+            uriTemplate: '/loan/{id}/validate-return',
             status: 200,
             requirements: ['id' => '\d+'],
             read: false,
