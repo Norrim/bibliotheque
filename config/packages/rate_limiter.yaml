@@ -1,0 +1,7 @@
+framework:
+    rate_limiter:
+        # Protection contre le brute-force du login : 5 tentatives par minute et par IP.
+        login:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'

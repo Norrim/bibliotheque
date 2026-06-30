@@ -62,7 +62,16 @@ install: ## Installe les dépendances Composer
 	$(COMPOSER) install
 
 .PHONY: setup
-setup: up jwt migrate init ## Installe tout : démarrage + JWT + migrations + démo
+setup: up secret jwt migrate init ## Installe tout : démarrage + secret + JWT + migrations + démo
+
+.PHONY: secret
+secret: ## Génère un APP_SECRET local dans .env.local (s'il est absent)
+	@if grep -qs '^APP_SECRET=.' .env.local; then \
+		printf '$(YELLOW)APP_SECRET déjà présent dans .env.local$(NC)\n'; \
+	else \
+		echo "APP_SECRET=$$($(DC) exec -T php php -r 'echo bin2hex(random_bytes(16));')" >> .env.local; \
+		printf '$(GREEN)APP_SECRET généré dans .env.local$(NC)\n'; \
+	fi
 
 .PHONY: jwt
 jwt: ## Génère la paire de clés JWT (idempotent)

@@ -68,6 +68,27 @@ Un `Makefile` regroupe les commandes courantes ; tout s'exécute dans le contene
 | `make test` · `make qa` | Tests · les trois gates de la CI (cs + stan + test) |
 | `make console c="…"` | Commande Symfony, ex. `make console c="debug:router"` |
 
+## Configuration et secrets
+
+Les variables d'environnement suivent la convention Symfony :
+
+- **`.env`** (versionné) : valeurs par défaut **non sensibles**. Les secrets
+  (`APP_SECRET`, `JWT_PASSPHRASE`) y sont laissés **vides**.
+- **`.env.local`** (gitignoré) : surcharges locales de développement (ton `APP_SECRET`,
+  une éventuelle `DATABASE_URL` spécifique…). On n'y met que ce que l'on surcharge.
+- **Production** : les secrets sont fournis par l'**environnement**. `compose.prod.yaml`
+  **exige** `APP_SECRET`, `POSTGRES_PASSWORD` et `JWT_PASSPHRASE` (le démarrage échoue
+  sinon) — aucun secret ni mot de passe par défaut ne peut atteindre la prod.
+
+Les **clés JWT** (`config/jwt/*.pem`, jamais versionnées) sont générées au premier
+démarrage. L'**`APP_SECRET`** se génère une fois en dev (il vit dans `.env.local`) :
+
+```bash
+make secret   # ajoute un APP_SECRET à .env.local (déjà inclus dans `make setup`)
+```
+
+À défaut de `make` : `echo "APP_SECRET=$(openssl rand -hex 16)" >> .env.local`.
+
 ## Comptes de démonstration
 
 Mot de passe commun : **`password`**
@@ -88,6 +109,15 @@ curl -k -X POST https://localhost/api/login_check \
   -H 'Content-Type: application/json' \
   -d '{"email":"member1@biblio.test","password":"password"}'
 ```
+
+### Sécurité
+
+- **Anti-brute-force** : `/api/login_check` est limité à **5 tentatives par minute**
+  (par email + IP) ; au-delà → `429 Too Many Requests` (composant Symfony RateLimiter).
+- **Mots de passe** hachés (`auto` : bcrypt/argon), jamais sérialisés.
+- **Autorisation** : hiérarchie de rôles + **Voter** (un adhérent n'accède qu'à ses
+  propres emprunts).
+- **Secrets** hors du dépôt (voir « Configuration et secrets ») ; clés JWT gitignorées.
 
 ## Endpoints
 
@@ -125,7 +155,8 @@ Documentation interactive (Swagger UI) : **https://localhost/api**
 
 Codes de réponse notables : `201` (emprunt créé), `200` (retour validé),
 `409` (règle métier violée : indisponible, retard, limite atteinte),
-`422` (données invalides), `401`/`403` (authentification / autorisation).
+`422` (données invalides), `401`/`403` (authentification / autorisation),
+`429` (trop de tentatives de connexion).
 
 ## Collection Postman
 
@@ -168,6 +199,7 @@ src/
 ├── Domain/        # logique métier (LoanManager), exceptions, client OpenLibrary
 ├── Entity/        # entités Doctrine (non exposées directement)
 ├── Enum/          # UserRole, LoanStatus
+├── EventSubscriber/ # limitation des tentatives de connexion (anti-brute-force)
 ├── Repository/    # requêtes (emprunts actifs, retard, disponibilité…)
 ├── Scheduler/     # planification de la synchronisation nocturne
 ├── Security/      # Voter (consultation des emprunts)

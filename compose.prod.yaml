@@ -7,7 +7,12 @@ services:
       context: .
       target: frankenphp_prod
     environment:
-      APP_SECRET: ${APP_SECRET}
+      # En production, ces secrets DOIVENT être fournis par l'environnement.
+      # La syntaxe ${VAR:?message} fait échouer le démarrage s'ils sont absents
+      # (aucun mot de passe / secret faible par défaut en prod).
+      APP_SECRET: ${APP_SECRET:?Définissez APP_SECRET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?Définissez JWT_PASSPHRASE}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
 
@@ -17,4 +22,11 @@ services:
       context: .
       target: frankenphp_prod
     environment:
-      APP_SECRET: ${APP_SECRET}
+      APP_SECRET: ${APP_SECRET:?Définissez APP_SECRET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?Définissez JWT_PASSPHRASE}
+
+  database:
+    environment:
+      # Le conteneur PostgreSQL refuse de démarrer sans mot de passe explicite en prod.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD}
